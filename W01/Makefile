@@ -1,6 +1,6 @@
 
-PRG            = z4
-OBJ            = z4.o
+PRG            = z3
+OBJ            = z3.o
 PROGRAMMER     = arduino
 PORT           = /dev/ttyUSB0
 MCU_TARGET     = atmega328p 
