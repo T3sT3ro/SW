@@ -43,7 +43,7 @@ char* lltoa(int64_t ll, char* llbuf) { // buffer of size 20 suffices
         ll /= 10;
     }
     //rotate number
-    for(int8_t i=0; i<cntr; i++){
+    for(int8_t i=0; i<cntr/2; i++){
         char c = llbuf[i];
         llbuf[i] = llbuf[cntr-i-1];
         llbuf[cntr-i-1] = c;
@@ -64,31 +64,33 @@ int main() {
 
     float f1, f2;
     char buf[128];
-    scanf("%" SCNd8, &a1);    printf("\r\n%" PRId8, a1);
+    scanf("%hhd", &a1);    printf("\r\n%hhd", a1);
     scanf("%" SCNd16, &b1);    printf("\r\n%" PRId16, b1);
     scanf("%" SCNd32, &c1);    printf("\r\n%" PRId32, c1);    
     scanf("%s", buf);    d1 = atoll(buf);    printf("\r\n%s", buf);
     scanf("%s", buf);    f1 = (float)atof(buf);    printf("\r\n%s", buf);
 
-    scanf("%" SCNd8, &a2);    printf("\r\n%" PRId8, a2);
+    scanf("%hhd", &a2);    printf("\r\n%hhd", a2);
     scanf("%" SCNd16, &b2);    printf("\r\n%" PRId16, b2);
     scanf("%" SCNd32, &c2);    printf("\r\n%" PRId32, c2);
     scanf("%s", buf);    d2 = atoll(buf);    printf("\r\n%s", buf);
     scanf("%s", buf);    f2 = (float)atof(buf);    printf("\r\n%s", buf);
 
     char obuf1[20];
-    char obuf2[256];
+    char obuf2[128];
     dtostrf((double)(f1 + f2), 10, 16, obuf2);
-    printf("\r\n+: %" PRId8 " %" PRId16 " %" PRId32 " %s %s\r\n",
-           a1 + a2, b1 + b2, c1 + c2, lltoa(d1+d2, obuf1), obuf2);
+    lltoa(d1+d2, obuf1);
+    printf("\r\n+: %hhd" " %" PRId16 " %" PRId32 " %s %s\r\n",
+           a1 + a2, b1 + b2, c1 + c2, obuf1, obuf2);
 
     dtostrf((double)(f1 * f2), 10, 16, obuf2);
-    printf("\r\n*: %" PRId8 " %" PRId16 " %" PRId32 " %s %s\r\n",
-           a1 * a2, b1 * b2, c1 * c2, lltoa(d1*d2, obuf1), obuf2);
+    lltoa(d1*d2, obuf1);
+    printf("\r\n*: %hhd" " %" PRId16 " %" PRId32 " %s %s\r\n",
+           a1 * a2, b1 * b2, c1 * c2, obuf1, obuf2);
 
     dtostrf((double)(f1 / f2), 10, 16, obuf2);
-
-    printf("\r\n/: %" PRId8 " %" PRId16 " %" PRId32 " %s %s\r\n",
-           a1 / a2, b1 / b2, c1 / c2, lltoa(d1/d2, obuf1), obuf2);
+    lltoa(d1/d2, obuf1);
+    printf("\r\n/: %hhd" " %" PRId16 " %" PRId32 " %s %s\r\n",
+           a1 / a2, b1 / b2, c1 / c2, obuf1, obuf2);
     return 0;
 }
