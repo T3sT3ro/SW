@@ -2,6 +2,7 @@
     "files.associations": {
         "delay.h": "c",
         "stdio.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "stdint.h": "c"
     }
 }
