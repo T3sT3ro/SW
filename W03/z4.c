@@ -47,13 +47,14 @@ int main() {
         ADCSRA |= _BV(ADSC);
         while (!(ADCSRA & _BV(ADIF))) // wait 
             ;
-        ADCSRA |= _BV(ADIF);
+        ADCSRA |= _BV(ADIF); //clear
+
         adcVal = ADC; // Uout
-        float R= 4700*(1024.0-adcVal);
+        float R= 4700.0*adcVal/(1024.0-adcVal);
         float T= 4008.0/(log(R/4700.0)+4008.0*(1/298.0));
-        printf("T: %d.%d \t R: %d\r\n", T, (T*100)%100, R);
+        printf("T: %d.%d \t R: %d\r\n", (int)(T-273), ((int)(T*100)%(100)), (int)R, ADC);
 
 
-        _delay_ms(100);
+        _delay_ms(1000);
     }
 }
