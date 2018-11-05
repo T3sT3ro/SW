@@ -31,12 +31,8 @@ int uart_receive(FILE *stream) {   // odczyt jednego znaku
 
 FILE uart_file;
 
-#define _R(rgb) ((rgb >> 16) & 0xff)
-#define _G(rgb) ((rgb >> 8) & 0xff)
-#define _B(rgb) (rgb & 0xff)
-
-inline uint16_t max(a, b) { return a > b ? a : b; }
-inline uint16_t min(a, b) { return a < b ? a : b; }
+#define  max(a, b) ((a) > (b) ? (a) : (b))
+#define  min(a, b) ((a) < (b) ? (a) : (b))
 
 static const uint8_t _ledTable[256] = {
     0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
@@ -58,41 +54,37 @@ static const uint8_t _ledTable[256] = {
     219, 221, 224, 226, 228, 231, 233, 235, 238, 240, 244, 247, 250, 253, 255,
     255};
 
-// convert 0->256 to RGB (maps to 0->360)
-uint32_t hue_to_RGB(int8_t hue) {
-    uint32_t R = 0, G = 0, B = 0;
-    R = min(255, max(0, abs(hue - 128)));
-    G = min(255, max(0, 255 - abs(hue - 85)));
-    B = min(255, max(0, 255 - abs(hue - 170)));
-    return (R << 16) + (G << 8) + (B);
-}
+
 
 void transition() {
-    uint32_t rgb = hue_to_RGB(rand() % 255);
-
-    int16_t r = _R(rgb), g = _G(rgb), b = _B(rgb);
+    uint32_t v = rand() % 255;
+    
+    int16_t r=0, g=0, b=0;
+    switch (v%6){
+        case 0: r=255; g=v; b=0; break;
+        case 1: r=v; g=255; b=0; break;
+        case 2: r=0; g=255; b=v; break;
+        case 3: r=0; g=v; b=255; break;
+        case 4: r=v; g=0; b=255; break;
+        case 5: r=255; g=0; b=v; break;
+        
+    }
     int16_t ri = 0, gi = 0, bi = 0;
-    while (ri < r || gi < g || bi < b) {
-        OCR0B = _ledTable[255 - ri];
-        OCR0A = _ledTable[255 - gi];
-        OCR2A = _ledTable[255 - bi];
-        ri = min(255, ri + 1);
-        bi = min(255, bi + 1);
-        gi = min(255, gi + 1);
+    for(int16_t i=0; i<255; i++){
+        OCR0B = _ledTable[255 - min(r, i)];
+        OCR0A = _ledTable[255 - min(g, i)];
+        OCR2A = _ledTable[255 - min(b, i)];
         _delay_ms(10);
     }
-
-    while (ri > 0 || gi > 0 || bi > 0) {
-        OCR0B = _ledTable[255 - ri];
-        OCR0A = _ledTable[255 - gi];
-        OCR2A = _ledTable[255 - bi];
-        ri = max(0, ri - 1);
-        bi = max(0, bi - 1);
-        gi = max(0, gi - 1);
-        _delay_ms(10);
-    }
-
     _delay_ms(200);
+
+    for(int16_t i=255; i>=0; i--){
+        OCR0B = _ledTable[255 - min(r, i)];
+        OCR0A = _ledTable[255 - min(g, i)];
+        OCR2A = _ledTable[255 - min(b, i)];
+        _delay_ms(10);
+    }
+
 }
 
 int main() {
@@ -122,9 +114,7 @@ int main() {
     srand(ADC);
 
     while (1) {
-        uint8_t x = rand() % 256;
-        printf("%hhd = %" PRIx32 "\r\n", x, hue_to_RGB(x));
         transition();
-        _delay_ms(200);
+        _delay_ms(400);
     }
 }

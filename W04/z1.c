@@ -34,11 +34,11 @@ int main() {
     // skonfiguruj strumienie wejścia/wyjścia
     fdev_setup_stream(&uart_file, uart_transmit, uart_receive, _FDEV_SETUP_RW);
     stdin = stdout = stderr = &uart_file;
-    int8_t a8 = 56, b8 = 3;
-    int16_t a16 = 10000, b16 = 2356;
-    int32_t a32 = 1234567, b32 = 100000;
-    int64_t a64 = 100000000000000, b64 = 99999999999;
-    float af = 123.4243124, bf = 2.23123;
+    int8_t a8, b8;
+    int16_t a16, b16;
+    int32_t a32, b32;
+    int64_t a64, b64;
+    float af, bf;
     volatile register int8_t r8;
     volatile register int16_t r16;
     volatile register int32_t r32;
