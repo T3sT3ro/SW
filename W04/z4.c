@@ -40,9 +40,9 @@ int main() {
     fdev_setup_stream(&uart_file, uart_transmit, uart_receive, _FDEV_SETUP_RW);
     stdin = stdout = stderr = &uart_file;
 
-    TCCR1A |= _BV(WGM10) | _BV(WGM11);
+    TCCR1A |= _BV(WGM10) | _BV(WGM11) | _BV(COM1B1);
     TCCR1B |= _BV(WGM13) | _BV(WGM12) | _BV(CS11) | _BV(ICES1);
-    OCR1A = 53*2;  // TOP 16Mhz/8/37.9kHz
+    OCR1A = 53;  // TOP 16Mhz/8/37.9kHz
     OCR1B = OCR1A / 2;
     DDRB |= _BV(PB5);
 
