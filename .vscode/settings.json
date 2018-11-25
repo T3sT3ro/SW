@@ -3,7 +3,8 @@
         "delay.h": "c",
         "stdio.h": "c",
         "cstdlib": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "interrupt.h": "c"
     },
     "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}"
 }
