@@ -7,11 +7,11 @@
 
 #define LED_STATE(state) PORTB = state ? PORTB | _BV(PB5) : PORTB & ~_BV(PB5);
 
-int8_t buffer[100];
+int8_t buffer[60];
 
 ISR(TIMER2_OVF_vect) {  // on timer2 overflow
     static int8_t intCnt = -1;
-    if (++intCnt >= 100)
+    if (++intCnt >= sizeof(buffer)/sizeof(int8_t))
         intCnt = 0;
     LED_STATE(buffer[intCnt]);
     buffer[intCnt] = !(PIND & _BV(PD3));
