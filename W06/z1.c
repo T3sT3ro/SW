@@ -26,6 +26,7 @@ ISR(USART_RX_vect) {  // receive byte
 int main() {
     uart_init();
     sei();
+    
 
     set_sleep_mode(SLEEP_MODE_IDLE);
     while (1)

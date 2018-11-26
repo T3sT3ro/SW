@@ -58,7 +58,7 @@ int main() {
     // ADCSRA |= _BV(ADEN);                            // włącz ADC
 
     int i = 0;
-    uint8_t x =0;
+    uint8_t x = 0;
     while (1) {
         PUT(PORTB, CS, 0);
         uint8_t note = pgm_read_byte(&music[i++]);
