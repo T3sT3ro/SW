@@ -33,8 +33,6 @@ int uart_receive(FILE *stream) {   // odczyt jednego znaku
 
 FILE uart_file;
 
-bool MOSFET_ON = 0;                    // przełącza zmienną pomiaru
-volatile uint16_t eng_MOSFET_ON = 0;   // pomiar gdy MOSFET otwarty
 volatile uint16_t eng_MOSFET_OFF = 0;  // pomiar gdy MOSFET zamknięty
 volatile uint16_t pot = 0;             // wartość z potencjometru
 
@@ -46,23 +44,14 @@ ISR(ADC_vect) {
         ADMUX &= ~_BV(MUX1);  // A2 OFF
         ADMUX |= _BV(MUX0);   // A1 ON
     } else {                  // silnik
-        if (MOSFET_ON)
-            eng_MOSFET_ON = ADC;
-        else
-            eng_MOSFET_OFF = ADC;
+        eng_MOSFET_OFF = ADC;
         ADMUX |= _BV(MUX1);   // A2 ON
         ADMUX &= ~_BV(MUX0);  // A1 OFF
         ADCSRA |= _BV(ADSC);  // start na potencjometr
     }
 }
 
-ISR(TIMER1_OVF_vect) {  // bottom, ADC na potencjometr
-    MOSFET_ON = false;
-    ADCSRA |= _BV(ADSC);
-}
-
 ISR(TIMER1_CAPT_vect) {  //top, MOSFET otwarty, ADC na silnik
-    MOSFET_ON = true;
     ADCSRA |= _BV(ADSC);
 }
 
@@ -90,14 +79,14 @@ int main() {
     stdin = stdout = stderr = &uart_file;
 
     // ADC init
-    ADMUX = _BV(REFS0) | _BV(MUX1);  // Vref na AVCC, prescaler = 1/128, potencjometr A2
-    ADCSRA |= _BV(ADEN) | _BV(ADPS0) | _BV(ADPS1) | _BV(ADPS2) | _BV(ADIE);
+    ADMUX = _BV(REFS0) | _BV(MUX0);  // Vref na AVCC, prescaler = 1/32, silnik A1
+    ADCSRA |= _BV(ADEN) | _BV(ADPS2) | _BV(ADPS0) | _BV(ADIE);
     DIDR0 = _BV(ADC1D) | _BV(ADC2D);  // digital off A1(silnik) A2(potencjometr)
 
     // timer 1 setup in phase freq correct PWM TOP=IRC1, prescaler 8
     TCCR1B = _BV(WGM13) | _BV(CS11);   // PFC PWM, top=ICR1
     TCCR1A = _BV(COM1A1);              // non inverting mode
-    TIMSK1 = _BV(ICIE1) | _BV(TOIE1);  // capture event + timer overflow interrupts
+    TIMSK1 = _BV(ICIE1);  // capture event + timer overflow interrupts
     ICR1 = 1024;                       // bo 16e6/(2*8*1024) = 976Hz
     DDRB |= _BV(PB1);                  // Timer1 OC1A output
 
@@ -113,7 +102,7 @@ int main() {
 
     int16_t referenceValue, measurementValue, inputValue;
     while (1) {
-        printf("pot[%lu / 1024] \tMOSFET_OFF:[%lu mV]\r\n", pot, (5000 * (uint32_t)eng_MOSFET_OFF / 1024));
+        printf("pot[%u / 1024] \tMOSFET_OFF:[%u]\r\n", pot, eng_MOSFET_OFF);
         // if (pidTimer) {
         //     referenceValue = Get_Reference();
         //     measurementValue = Get_Measurement();
