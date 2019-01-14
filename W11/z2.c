@@ -36,11 +36,18 @@ FILE uart_file;
 volatile uint16_t eng_MOSFET_OFF = 0;  // pomiar gdy MOSFET zamknięty
 volatile uint16_t pot = 0;             // wartość z potencjometru
 
+#define K_P 0.50
+#define K_I 0.00
+#define K_D 0.00
+volatile uint8_t pidTimer = true;  // Flag for status information
+struct PID_DATA pidData;           // Parameters for regulator
+#define TIME_INTERVAL 157          // Sampling Time Interval TIME_INTERVAL = ( desired interval [sec] ) * ( frequency [Hz] ) / 255
+
 // konwersja na przerwanie OCR1A~wypełnienie
 ISR(ADC_vect) {
     if (ADMUX & _BV(MUX1)) {  // potencjometr A2
         pot = ADC;
-        OCR1A = pot;
+        //OCR1A = pot;
         ADMUX &= ~_BV(MUX1);  // A2 OFF
         ADMUX |= _BV(MUX0);   // A1 ON
     } else {                  // silnik
@@ -49,27 +56,11 @@ ISR(ADC_vect) {
         ADMUX &= ~_BV(MUX0);  // A1 OFF
         ADCSRA |= _BV(ADSC);  // start na potencjometr
     }
+    pidTimer = true;
 }
 
 ISR(TIMER1_CAPT_vect) {  //top, MOSFET otwarty, ADC na silnik
     ADCSRA |= _BV(ADSC);
-}
-
-#define K_P 1.00
-#define K_I 0.00
-#define K_D 0.00
-uint8_t pidTimer = true;   // Flag for status information
-struct PID_DATA pidData;   // Parameters for regulator
-#define TIME_INTERVAL 157  // Sampling Time Interval TIME_INTERVAL = ( desired interval [sec] ) * ( frequency [Hz] ) / 255(timer0)
-
-ISR(TIMER0_OVF_vect) {  // timer 0 overflow, PID sample after sertain time
-    static uint16_t i = 0;
-    if (i < TIME_INTERVAL)
-        i++;
-    else {
-        pidTimer = true;
-        i = 0;
-    }
 }
 
 int main() {
@@ -84,16 +75,11 @@ int main() {
     DIDR0 = _BV(ADC1D) | _BV(ADC2D);  // digital off A1(silnik) A2(potencjometr)
 
     // timer 1 setup in phase freq correct PWM TOP=IRC1, prescaler 8
-    TCCR1B = _BV(WGM13) | _BV(CS11);   // PFC PWM, top=ICR1
-    TCCR1A = _BV(COM1A1);              // non inverting mode
-    TIMSK1 = _BV(ICIE1);  // capture event + timer overflow interrupts
-    ICR1 = 1024;                       // bo 16e6/(2*8*1024) = 976Hz
-    DDRB |= _BV(PB1);                  // Timer1 OC1A output
-
-    // timer 0 setup for PID controller
-    TCCR0A = _BV(CS00);   // enable timer 0, no prescaler
-    TIMSK0 = _BV(TOIE0);  // interrupt enable on overflow
-    TCNT0 = 0;
+    TCCR1B = _BV(WGM13) | _BV(CS11);  // PFC PWM, top=ICR1
+    TCCR1A = _BV(COM1A1);             // non inverting mode
+    TIMSK1 = _BV(ICIE1);              // capture event + timer overflow interrupts
+    ICR1 = 1024;                      // bo 16e6/(2*8*1024) = 976Hz
+    DDRB |= _BV(PB1);                 // Timer1 OC1A output
 
     pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR, K_D * SCALING_FACTOR, &pidData);
 
@@ -102,15 +88,14 @@ int main() {
 
     int16_t referenceValue, measurementValue, inputValue;
     while (1) {
-        printf("pot[%u / 1024] \tMOSFET_OFF:[%u]\r\n", pot, eng_MOSFET_OFF);
-        // if (pidTimer) {
-        //     referenceValue = Get_Reference();
-        //     measurementValue = Get_Measurement();
-
-        //     inputValue = pid_Controller(referenceValue, measurementValue, &pidData);
-
-        //     //Set_Input(inputValue);
-        //     pidTimer = FALSE;
-        // }
+        if (pidTimer) {
+            // na podstawie pomiarów mniej więcej liniowe zachowanie
+            referenceValue = (int16_t)(((int32_t)8 * (int32_t)pot + (int32_t)900 * (int32_t)8) / (int32_t)10);
+            inputValue = pid_Controller((-3 * (int16_t)pot + 830 * 2) / 2, eng_MOSFET_OFF, &pidData);
+            OCR1A = inputValue;
+            pidTimer = FALSE;
+            printf("pot[%.3u / 1024] \tMOSFET_OFF:[%.3u] \tref:[%.3u] \tIn:[%.3u]\r\n", pot, eng_MOSFET_OFF, referenceValue, inputValue);
+            _delay_ms(10);
+        }
     }
 }
