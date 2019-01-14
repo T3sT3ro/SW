@@ -36,9 +36,9 @@ FILE uart_file;
 volatile uint16_t eng_MOSFET_OFF = 0;  // pomiar gdy MOSFET zamknięty
 volatile uint16_t pot = 0;             // wartość z potencjometru
 
-#define K_P 0.50
-#define K_I 0.00
-#define K_D 0.00
+#define K_P 0.5
+#define K_I 0.03
+#define K_D 0.013
 volatile uint8_t pidTimer = true;  // Flag for status information
 struct PID_DATA pidData;           // Parameters for regulator
 #define TIME_INTERVAL 157          // Sampling Time Interval TIME_INTERVAL = ( desired interval [sec] ) * ( frequency [Hz] ) / 255
@@ -90,8 +90,10 @@ int main() {
     while (1) {
         if (pidTimer) {
             // na podstawie pomiarów mniej więcej liniowe zachowanie
-            referenceValue = (int16_t)(((int32_t)8 * (int32_t)pot + (int32_t)900 * (int32_t)8) / (int32_t)10);
-            inputValue = pid_Controller((-3 * (int16_t)pot + 830 * 2) / 2, eng_MOSFET_OFF, &pidData);
+            referenceValue = (int16_t)(((int32_t)-7 * (int32_t)pot / (int32_t)3) + (int32_t)1024);
+            inputValue = pid_Controller(referenceValue, eng_MOSFET_OFF, &pidData);
+            if(inputValue > (uint16_t)1023)
+                inputValue = 1023;
             OCR1A = inputValue;
             pidTimer = FALSE;
             printf("pot[%.3u / 1024] \tMOSFET_OFF:[%.3u] \tref:[%.3u] \tIn:[%.3u]\r\n", pot, eng_MOSFET_OFF, referenceValue, inputValue);
