@@ -7,7 +7,9 @@
         "interrupt.h": "c",
         "io.h": "c",
         "inttypes.h": "c",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "semaphore.h": "c",
+        "semphr.h": "c"
     },
     "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}"
 }

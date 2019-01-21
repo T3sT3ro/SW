@@ -46,11 +46,11 @@ ARDUINO_LIB = /usr/share/arduino/lib
 SRC	= \
 $(NAME).c \
 $(SOURCE_DIR)/tasks.c \
+$(SOURCE_DIR)/queue.c \
 $(SOURCE_DIR)/list.c \
 $(SOURCE_DIR)/croutine.c \
 $(SOURCE_DIR)/portable/MemMang/heap_1.c \
 $(PORT_DIR)/port.c \
-$(SOURCE_DIR)/queue.c \
 uart.c
 
 # Optional compiler flags.
